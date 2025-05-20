@@ -11,8 +11,9 @@ where
 {
     shape: [usize; N], // now allowed on nightly
     data: Vec<T>,
-    _marker: PhantomData<T, B>,
+    _marker: PhantomData<(T, B)>,
 }
+
 
 
 // impl<T, const N: usize, B: Backend> TensorND<T, N, B> {
