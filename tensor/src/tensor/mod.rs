@@ -5,17 +5,15 @@ use crate::backend::Backend;
 use core::marker::PhantomData;
 
 #[derive(Clone, Debug)]
-pub struct Tensor<
-    T,
-    const N: usize,
-    const SHAPE: [usize; N], // now allowed on nightly
-    B: Backend,
->
+pub struct Tensor<T, const N: usize, B: Backend> 
 where
-    [(); N]: ,                // required by generic_const_exprs
+    [(); N]: ,
 {
-    _marker: PhantomData<(T, B)>,
+    shape: [usize; N], // now allowed on nightly
+    data: Vec<T>,
+    _marker: PhantomData<T, B>,
 }
+
 
 // impl<T, const N: usize, B: Backend> TensorND<T, N, B> {
 //     // todo new function
