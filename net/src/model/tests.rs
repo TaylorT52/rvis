@@ -35,4 +35,14 @@ mod tests {
 
         assert_eq!(output, expected);
     }
+
+    #[test]
+    fn test_simple_cnn_forward_shape() {
+        let model = SimpleCNN::new();
+        let input = Array4::<f32>::zeros((1, 3, 32, 32)); 
+        let output = model.forward(&input);
+
+        println!("Output shape: {:?}", output.shape());
+        assert_eq!(output.shape(), &[1, 16, 8, 8]);
+    }
 }
