@@ -46,6 +46,7 @@ impl Conv2D {
                 )
             }
 
+            //diff weight inits based on input schemes
             InitScheme::HeNormal => {
                 let std = (2.0 / fan_in as f32).sqrt();
                 let normal = Normal::new(0.0, std).unwrap();
@@ -70,6 +71,7 @@ impl Conv2D {
             }
         };
 
+        //init bias as 1d arr 0's
         let bias = Array::zeros(out_channels);
 
         Self {
