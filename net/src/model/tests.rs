@@ -11,4 +11,18 @@ mod tests {
         let output = conv.forward(&input);
         assert_eq!(output.shape(), &[1, 8, 32, 32]);
     }
+
+    #[test]
+    fn test_softmax_normalizes_to_one() {
+        let softmax = Softmax::new(1);
+
+        let input = arr4(&[[[[3.0]], [[1.0]], [[0.2]]]]);
+        let output = softmax.forward(&input);
+
+        let sum: f32 = output.index_axis(Axis(1), 0)[[0, 0]]
+            + output.index_axis(Axis(1), 1)[[0, 0]]
+            + output.index_axis(Axis(1), 2)[[0, 0]];
+
+        assert!((sum - 1.0).abs() < 1e-5, "softmax outputs do not sum to 1, got {}", sum);
+    }
 }
