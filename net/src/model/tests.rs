@@ -25,4 +25,14 @@ mod tests {
 
         assert!((sum - 1.0).abs() < 1e-5, "softmax outputs do not sum to 1, got {}", sum);
     }
+
+    #[test]
+    fn test_relu_activation() {
+        let relu = ReLU::new();
+        let input = arr4(&[[[[-1.0, 0.0], [2.5, -3.3]]]]);
+        let output = relu.forward(&input);
+        let expected = arr4(&[[[[0.0, 0.0], [2.5, 0.0]]]]);
+
+        assert_eq!(output, expected);
+    }
 }
