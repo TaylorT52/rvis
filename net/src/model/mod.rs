@@ -35,7 +35,7 @@ impl SimpleCNN {
         }
     }
 
-    pub fn forward(&self, input: &Array4<f32>) -> Array4<f32> {
+    pub fn forward(&mut self, input: &Array4<f32>) -> Array4<f32> {
         let x = self.conv1.forward(input);
         let x = self.relu1.forward(&x);
         let x = self.pool1.forward(&x);

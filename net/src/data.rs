@@ -18,10 +18,9 @@ pub fn load_cifar10_bin_batch(path: &str, batch_size: usize) -> (Array4<f32>, Ar
         let offset = i * ENTRY_SIZE;
 
         let label = buffer[offset] as usize;
-        println!("Raw label byte at sample {}: {}", i, buffer[offset]);
         assert!(
             label < 10,
-            "Invalid label {} at sample {}. Expected label in 0..10.",
+            "bad label {} at sample {}",
             label, i
         );
         labels[(i, label)] = 1.0;

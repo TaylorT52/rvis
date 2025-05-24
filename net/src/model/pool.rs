@@ -4,7 +4,8 @@ use ndarray::{Array4, s};
 pub struct MaxPool2D {
     pub kernel_size: usize,
     pub stride: usize, 
-    pub padding: usize
+    pub padding: usize,
+    mask: Option<Array4<bool>>
 }
 
 impl MaxPool2D {
@@ -12,7 +13,8 @@ impl MaxPool2D {
         Self { 
             kernel_size, 
             stride, 
-            padding
+            padding,
+            mask: None
         }
     }
 
@@ -46,41 +48,85 @@ impl MaxPool2D {
     }
 
     //forward pass with padding
-    pub fn forward(&self, input: &Array4<f32>) -> Array4<f32> {
-        let input = self.pad_input(input);
-        let (batch, channels, h_in, w_in) = (
+    pub fn forward(&mut self, input: &Array4<f32>) -> Array4<f32> {
+        let (batch, channels, height, width) = (
             input.shape()[0],
             input.shape()[1],
             input.shape()[2],
             input.shape()[3],
         );
 
-        let out_h = (h_in - self.kernel_size) / self.stride + 1;
-        let out_w = (w_in - self.kernel_size) / self.stride + 1;
+        let out_h = (height - self.kernel_size) / self.stride + 1;
+        let out_w = (width - self.kernel_size) / self.stride + 1;
 
         let mut output = Array4::<f32>::zeros((batch, channels, out_h, out_w));
+        let mut mask = Array4::<bool>::default(input.raw_dim());
 
         for b in 0..batch {
             for c in 0..channels {
-                for oh in 0..out_h {
-                    for ow in 0..out_w {
+                for i in 0..out_h {
+                    for j in 0..out_w {
+                        let h_start = i * self.stride;
+                        let w_start = j * self.stride;
+
                         let mut max_val = f32::NEG_INFINITY;
+                        let mut max_idx = (0, 0);
 
                         for kh in 0..self.kernel_size {
                             for kw in 0..self.kernel_size {
-                                let ih = oh * self.stride + kh;
-                                let iw = ow * self.stride + kw;
-
-                                max_val = max_val.max(input[[b, c, ih, iw]]);
+                                let h = h_start + kh;
+                                let w = w_start + kw;
+                                let val = input[[b, c, h, w]];
+                                if val > max_val {
+                                    max_val = val;
+                                    max_idx = (h, w);
+                                }
                             }
                         }
 
-                        output[[b, c, oh, ow]] = max_val;
+                        output[[b, c, i, j]] = max_val;
+                        mask[[b, c, max_idx.0, max_idx.1]] = true;
                     }
                 }
             }
         }
 
+        self.mask = Some(mask);
         output
+    }
+
+    pub fn backward(&self, grad_output: &Array4<f32>) -> Array4<f32> {
+        let mask = self.mask.as_ref().expect("MaxPool2D: forward must be called before backward");
+        let mut grad_input = Array4::<f32>::zeros(mask.raw_dim());
+
+        let (batch, channels, out_h, out_w) = (
+            grad_output.shape()[0],
+            grad_output.shape()[1],
+            grad_output.shape()[2],
+            grad_output.shape()[3],
+        );
+
+        for b in 0..batch {
+            for c in 0..channels {
+                for i in 0..out_h {
+                    for j in 0..out_w {
+                        let h_start = i * self.stride;
+                        let w_start = j * self.stride;
+
+                        for kh in 0..self.kernel_size {
+                            for kw in 0..self.kernel_size {
+                                let h = h_start + kh;
+                                let w = w_start + kw;
+                                if mask[[b, c, h, w]] {
+                                    grad_input[[b, c, h, w]] = grad_output[[b, c, i, j]];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        grad_input
     }
 }

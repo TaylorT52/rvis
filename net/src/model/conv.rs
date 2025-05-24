@@ -11,6 +11,9 @@ pub struct Conv2D {
     pub padding: usize,
     pub weights: Array4<f32>,
     pub bias: Array1<f32>,
+    pub grad_weights: Array4<f32>,
+    pub grad_bias: Array1<f32>,
+    pub input: Option<Array4<f32>>
 }
 
 //give user more finegrained control over weight init
@@ -74,6 +77,9 @@ impl Conv2D {
         //init bias as 1d arr 0's
         let bias = Array::zeros(out_channels);
 
+        let grad_weights = Array::zeros((out_channels, in_channels, kernel_size, kernel_size));
+        let grad_bias = Array::zeros(out_channels);
+
         Self {
             in_channels,
             out_channels,
@@ -82,6 +88,9 @@ impl Conv2D {
             padding,
             weights,
             bias,
+            grad_weights,
+            grad_bias,
+            input: None,
         }
     }
 
@@ -101,7 +110,9 @@ impl Conv2D {
         }
     }
 
-    pub fn forward(&self, input: &Array4<f32>) -> Array4<f32> {
+    pub fn forward(&mut self, input: &Array4<f32>) -> Array4<f32> {
+        self.input = Some(input.clone());
+        let input = self.pad_input(&input); 
         //check channel count
         assert_eq!(
             input.shape()[1],
@@ -110,9 +121,6 @@ impl Conv2D {
             input.shape()[1],
             self.in_channels
         );
-
-        //pad if necessary
-        let input = self.pad_input(input);
 
         let (batch, _c, h_in_p, w_in_p) = (
             input.shape()[0],
@@ -157,4 +165,49 @@ impl Conv2D {
 
         output
     }
+
+    //backward pass
+    pub fn backward(&mut self, grad_output: &Array4<f32>) -> Array4<f32> {
+        let input = self.input.as_ref().expect("Conv2D: forward() must be called before backward()");
+        let input_padded = self.pad_input(&input);
+        let (batch_size, _, h_in, w_in) = input_padded.dim();
+        let (_, _, h_out, w_out) = grad_output.dim();
+
+        let mut grad_input_padded = Array4::<f32>::zeros(input_padded.dim());
+        self.grad_weights.fill(0.0);
+        self.grad_bias.fill(0.0);
+    
+        for b in 0..batch_size {
+            for oc in 0..self.out_channels {
+                for i in 0..h_out {
+                    for j in 0..w_out {
+                        let val = grad_output[[b, oc, i, j]];
+                        self.grad_bias[oc] += val;
+    
+                        for ic in 0..self.in_channels {
+                            for kh in 0..self.kernel_size {
+                                for kw in 0..self.kernel_size {
+                                    let h = i * self.stride + kh;
+                                    let w = j * self.stride + kw;
+    
+                                    let input_val = input_padded[[b, ic, h, w]];
+                                    self.grad_weights[[oc, ic, kh, kw]] += input_val * val;
+                                    grad_input_padded[[b, ic, h, w]] += self.weights[[oc, ic, kh, kw]] * val;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    
+        if self.padding > 0 {
+            let start = self.padding;
+            let end_h = start + input.shape()[2];
+            let end_w = start + input.shape()[3];
+            grad_input_padded.slice_move(s![.., .., start..end_h, start..end_w])
+        } else {
+            grad_input_padded
+        }
+    }    
 }

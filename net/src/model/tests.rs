@@ -1,5 +1,3 @@
-// Inside net/src/model/conv.rs or pool.rs
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,7 +40,7 @@ mod tests {
         let input = Array4::<f32>::zeros((1, 3, 32, 32)); 
         let output = model.forward(&input);
 
-        println!("Output shape: {:?}", output.shape());
+        println!("out shape: {:?}", output.shape());
         assert_eq!(output.shape(), &[1, 16, 8, 8]);
     }
 }

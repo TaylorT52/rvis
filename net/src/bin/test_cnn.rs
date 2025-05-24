@@ -1,18 +1,28 @@
 use net::model::SimpleCNN;
 use net::data::load_cifar10_bin_batch;
+use ndarray::Axis;
 
 fn main() {
-    let model = SimpleCNN::new();
+    let mut model = SimpleCNN::new();
 
-    let (x, y) = load_cifar10_bin_batch("cifar-10-batches-bin/data_batch_1.bin", 8);
+    //train on 200 samples, batch1
+    let (x_train, y_train) = load_cifar10_bin_batch("cifar-10-batches-bin/data_batch_1.bin", 200);
 
-    let out = model.forward(&x);
+    println!("\n--- training ---");
+    for i in 0..5 {
+        println!("Epoch {}", i + 1);
+        //training here
+        let _ = model.forward(&x_train);
+    }
 
-    for (i, (logits, target)) in out
-        .axis_iter(ndarray::Axis(0))
-        .zip(y.axis_iter(ndarray::Axis(0)))
-        .enumerate()
-    {
+    //teste on 100 samples batch 2
+    let (x_test, y_test) = load_cifar10_bin_batch("cifar-10-batches-bin/data_batch_2.bin", 100);
+    let out = model.forward(&x_test);
+
+    println!("\n--- testing ---");
+
+    let mut correct = 0;
+    for (i, (logits, target)) in out.axis_iter(Axis(0)).zip(y_test.axis_iter(Axis(0))).enumerate() {
         let pred = logits
             .iter()
             .enumerate()
@@ -25,6 +35,13 @@ fn main() {
             .position(|x| (*x - 1.0).abs() < 1e-5)
             .unwrap_or(usize::MAX);
 
-        println!("Sample {}: predicted {}, label {}", i, pred, label);
+        if pred == label {
+            correct += 1;
+        }
+
+        println!("sample {:3}: predicted {:2}, label {:2}  {}", i, pred, label, if pred == label { "✓" } else { "✗" });
     }
+
+    let accuracy = correct as f32 / x_test.len_of(Axis(0)) as f32 * 100.0;
+    println!("\ntest acc: {:.2}%", accuracy);
 }

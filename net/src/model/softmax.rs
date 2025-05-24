@@ -3,16 +3,20 @@ use ndarray::{Array4, s};
 #[derive(Debug)]
 
 pub struct Softmax {
-    pub axis: usize
+    pub axis: usize,
+    output: Option<Array4<f32>>
 }
 
 //supports axis 1 2 3 (channels, height, width)
 impl Softmax { 
     pub fn new(axis: usize) -> Self {
-        Self { axis }
+        Self { 
+            axis,
+            output: None
+        }
     }
 
-    pub fn forward(&self, input: &Array4<f32>) -> Array4<f32> {
+    pub fn forward(&mut self, input: &Array4<f32>) -> Array4<f32> {
         let mut output = input.clone();
 
         //apply softmax along the specfied axis
@@ -51,6 +55,7 @@ impl Softmax {
                 }
             });
 
+        self.output = Some(output.clone()); 
         output
     }
 
@@ -65,5 +70,10 @@ impl Softmax {
         for val in slice.iter_mut() {
             *val /= sum;
         }
+    }
+
+    pub fn backward(&self, target: &Array4<f32>) -> Array4<f32> {
+        let output = self.output.as_ref().expect("softmax fwd has to be previously implemented");
+        output - target
     }
 }
