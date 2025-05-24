@@ -18,7 +18,7 @@ impl Softmax {
         //apply softmax along the specfied axis
         output
             .outer_iter_mut()
-            .for_each(|mut sample| {
+            .for_each(|sample| {
                 let mut view = sample.into_dimensionality::<ndarray::Ix3>().unwrap();
 
                 match self.axis {

@@ -1,4 +1,4 @@
-use ndarray::{Array4, s};
+use ndarray::Array4;
 
 #[derive(Debug)]
 pub struct Relu;

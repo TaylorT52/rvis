@@ -3,11 +3,11 @@ pub mod relu;
 pub mod pool;
 pub mod softmax;
 
-
-use crate::model::conv::{Conv2D, InitScheme};
-use crate::model::pool::MaxPool2D;
-use crate::model::relu::Relu;
-use crate::model::softmax::Softmax;
+use crate::model::conv::InitScheme;
+pub use self::conv::Conv2D;
+pub use self::relu::Relu;
+pub use self::pool::MaxPool2D;
+pub use self::softmax::Softmax;
 
 use ndarray::Array4;
 
