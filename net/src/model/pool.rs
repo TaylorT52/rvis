@@ -117,8 +117,11 @@ impl MaxPool2D {
                             for kw in 0..self.kernel_size {
                                 let h = h_start + kh;
                                 let w = w_start + kw;
-                                if mask[[b, c, h, w]] {
-                                    grad_input[[b, c, h, w]] = grad_output[[b, c, i, j]];
+                        
+                                if h < grad_input.shape()[2] && w < grad_input.shape()[3] {
+                                    if mask[[b, c, h, w]] {
+                                        grad_input[[b, c, h, w]] = grad_output[[b, c, i, j]];
+                                    }
                                 }
                             }
                         }

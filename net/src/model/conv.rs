@@ -94,6 +94,11 @@ impl Conv2D {
         }
     }
 
+    pub fn update_weights(&mut self, lr: f32) {
+        self.weights -= &(lr * &self.grad_weights);
+        self.bias -= &(lr * &self.grad_bias);
+    }
+
     pub fn pad_input(&self, input: &Array4<f32>) -> Array4<f32> {
         if self.padding == 0 {
             input.clone()

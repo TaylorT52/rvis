@@ -11,8 +11,8 @@ fn main() {
     println!("\n--- training ---");
     for i in 0..5 {
         println!("Epoch {}", i + 1);
-        //training here
-        let _ = model.forward(&x_train);
+        let loss = model.train_batch(&x_train, &y_train, 0.01);
+        println!("  loss = {:.4}", loss);
     }
 
     //teste on 100 samples batch 2

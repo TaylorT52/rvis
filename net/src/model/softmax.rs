@@ -1,4 +1,4 @@
-use ndarray::{Array4, s};
+use ndarray::{Array4, Array2, s};
 
 #[derive(Debug)]
 
@@ -72,8 +72,11 @@ impl Softmax {
         }
     }
 
-    pub fn backward(&self, target: &Array4<f32>) -> Array4<f32> {
+    pub fn backward(&self, target: &Array2<f32>) -> Array4<f32> {
         let output = self.output.as_ref().expect("softmax fwd has to be previously implemented");
+
+        println!("output shape: {:?}", self.output.as_ref().unwrap().shape());
+        println!("target shape: {:?}", target.shape());
         output - target
     }
 }
