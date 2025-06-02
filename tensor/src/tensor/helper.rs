@@ -1,21 +1,11 @@
-const fn prod<const N: usize>(a: &[usize; N]) -> usize {
-    let mut p = 1;
-    let mut i = 0;
-    while i < N {
-        p *= a[i];
-        i += 1;
+pub fn flatten_idx<const D: usize>(idx: &[usize; D], shape: &[usize; D]) -> usize {
+    let mut stride = 1;
+    let mut offset = 0;
+    let mut d = D as isize - 1;
+    while d >= 0 {
+        offset += idx[d as usize] * stride;
+        stride *= shape[d as usize];
+        d -= 1;
     }
-    p
-}
-
-/// Are two shapes *exactly* equal?
-const fn same_shape<const N: usize>(a: &[usize; N], b: &[usize; N]) -> bool {
-    let mut i = 0;
-    while i < N {
-        if a[i] != b[i] {
-            return false;
-        }
-        i += 1;
-    }
-    true
+    offset
 }
