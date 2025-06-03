@@ -17,39 +17,58 @@ pub trait StaticShape {
     fn size(&self) -> usize {
         Self::SHAPE.iter().copied().product()
     }
+
+    // TODO: strides
 }
 
-pub struct Tensor2<T, const R: usize, const C: usize, B: Backend<T>>
-where
-    T: Copy + Default,
-{
-    storage: B::Storage,
-    _p: PhantomData<T>,
-}
-
-impl<T, const R: usize, const C: usize, B: Backend<T>> StaticShape for Tensor2<T, R, C, B>
-where
-    T: Copy + Default,
-{
-    const D: usize = 2;
-    const SHAPE: &'static [usize] = &[R, C];
-}
-
-impl<T, const R: usize, const C: usize, B: Backend<T>> Tensor2<T, R, C, B>
-where
-    T: Copy + Default,
-{
-    pub fn new(shape: [usize; 2], data: Vec<T>) -> Self {
-        assert_eq!(shape.iter().product::<usize>(), data.len());
-        Self {
-            storage: B::storage_from_vec(data),
-            _p: PhantomData,
+macro_rules! impl_tensor_rank {
+    ($name:ident, [$($dim:ident),+]) => {
+        pub struct $name<T, $(const $dim: usize),+, B: Backend<T>>
+        where
+            T: Copy + Default,
+        {
+            storage: B::Storage,
+            _p: PhantomData<T>,
         }
-    }
+
+        impl<T, $(const $dim: usize),+, B: Backend<T>> StaticShape for $name<T, $($dim),+, B>
+        where
+            T: Copy + Default,
+        {
+            const D: usize = impl_tensor_rank!(@count_dims $($dim),*);
+            const SHAPE: &'static [usize] = &[ $($dim),* ];
+        }
+
+        impl<T, $(const $dim: usize),+, B: Backend<T>> $name<T, $($dim),+, B>
+        where
+            T: Copy + Default,
+        {
+            pub fn new(data: [T; impl_tensor_rank!(@product $($dim),*)]) -> Self {
+                Self {
+                    storage: B::storage_from_vec(data.to_vec()),
+                    _p: PhantomData,
+                }
+            }
+        }
+    };
+
+    (@count_dims $head:ident $(, $tail:ident)*) => {
+        1 $(+ { let _ = $tail; 1 })*
+    };
+
+    (@product $head:ident $(, $tail:ident)*) => {
+        $head $( * $tail )*
+    };
 }
 
+impl_tensor_rank!(Tensor2, [R, C]);
+impl_tensor_rank!(Tensor3, [D0, D1, D2]);
+impl_tensor_rank!(Tensor4, [D0, D1, D3, D4]);
+
+
+/// 2-dimensional matrix multiplication
 impl<T, const R: usize, const C: usize, const K: usize, B> Mul<Tensor2<T, C, K, B>>
-    for Tensor2<T, R, C, B>
+for Tensor2<T, R, C, B>
 where
     T: Copy + Default + Mul<Output = T>,
     B: Backend<T>,
@@ -65,3 +84,10 @@ where
         }
     }
 }
+
+// TODO: indexing
+// for indexing of 1, N
+// TODO: add/mul/sub/div for same shape
+// TODO: multiply/add/div/sub by constant
+// TODO: reshaping
+// TODO: transpose
