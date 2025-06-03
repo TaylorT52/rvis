@@ -1,6 +1,6 @@
-use net::model::SimpleCNN;
-use net::data::load_cifar10_bin_batch;
 use ndarray::Axis;
+use net::data::load_cifar10_bin_batch;
+use net::model::SimpleCNN;
 
 fn main() {
     let mut model = SimpleCNN::new();
@@ -22,7 +22,11 @@ fn main() {
     println!("\n--- testing ---");
 
     let mut correct = 0;
-    for (i, (logits, target)) in out.axis_iter(Axis(0)).zip(y_test.axis_iter(Axis(0))).enumerate() {
+    for (i, (logits, target)) in out
+        .axis_iter(Axis(0))
+        .zip(y_test.axis_iter(Axis(0)))
+        .enumerate()
+    {
         let pred = logits
             .iter()
             .enumerate()
@@ -39,7 +43,13 @@ fn main() {
             correct += 1;
         }
 
-        println!("sample {:3}: predicted {:2}, label {:2}  {}", i, pred, label, if pred == label { "✓" } else { "✗" });
+        println!(
+            "sample {:3}: predicted {:2}, label {:2}  {}",
+            i,
+            pred,
+            label,
+            if pred == label { "✓" } else { "✗" }
+        );
     }
 
     let accuracy = correct as f32 / x_test.len_of(Axis(0)) as f32 * 100.0;

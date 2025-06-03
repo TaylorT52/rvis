@@ -1,4 +1,4 @@
-mod naive_cpu;
+pub mod naive_cpu;
 
 /// A back‑end is a thin façade that owns the hot loops.  Each tensor op calls
 /// `B::add`, `B::mul`, … so swapping `NaiveCpu` for a BLAS or CUDA backend is
@@ -23,6 +23,13 @@ pub trait Backend<T: Copy + Default> {
     fn mul(lhs: &Self::Storage, rhs: &Self::Storage, out: &mut Self::Storage);
     fn div(lhs: &Self::Storage, rhs: &Self::Storage, out: &mut Self::Storage);
 
+    fn matmul<const M: usize, const K: usize, const N: usize>(
+        lhs: &Self::Storage,     /* M×K */
+        rhs: &Self::Storage,     /* K×N */
+        out: &mut Self::Storage, /* M×N */
+    );
+
     fn add_scalar(lhs: &Self::Storage, rhs: T, out: &mut Self::Storage);
     fn mul_scalar(lhs: &Self::Storage, rhs: T, out: &mut Self::Storage);
+    fn div_scalar(lhs: &Self::Storage, rhs: T, out: &mut Self::Storage);
 }

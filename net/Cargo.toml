@@ -8,3 +8,5 @@ ndarray = "0.15"
 ndarray-rand = "0.14"
 rand = "0.8"
 ndarray-npy = "0.7"
+
+tensor = { path = "../tensor" }
