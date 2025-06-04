@@ -10,6 +10,6 @@ fn main() {
     let c = b * 5;
     let d = 5 * a;
     let e = d + 1;
-    let f = 1 + e;
+    let _f = 1 + e;
     println!("{:?}", c.shape());
 }

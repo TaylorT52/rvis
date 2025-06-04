@@ -1,5 +1,4 @@
 use crate::storage::HasStorage;
-use core::ops::{Add, Mul};
 use std::marker::PhantomData;
 
 pub trait StaticShape {

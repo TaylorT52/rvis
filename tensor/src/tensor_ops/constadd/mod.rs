@@ -1,23 +1,10 @@
-//! Element‑wise scalar + tensor (`+`) in both directions.
-//!
-//!   • Back‑end: implement [`ConstAdd`] for your backend.
-//!   • Tensor  : `Tensor2 + scalar` works generically.
-//!   • Scalar  : `scalar + Tensor2` works for each primitive type listed
-//!               in `impl_scalar_plus_tensor!`.
+pub mod cast;  
+pub mod naive_cpu; 
 
-pub mod cast;          // small numeric‑conversion helpers (CastInto)
-pub mod naive_cpu;     // NaiveCpu kernel
-
-/* re‑export helpers so user code can do `use …::IntoScalarAdd` if desired */
 pub use cast::CastInto;
-
 use core::ops::Add;
 use crate::tensor::Tensor2;
 use crate::storage::HasStorage;
-
-/* ──────────────────────────────────────────────────────────────────────── */
-/*  Backend‑side trait                                                     */
-/* ──────────────────────────────────────────────────────────────────────── */
 
 pub trait ConstAdd<T: Copy + Default>: Sized {
     fn constadd<const R: usize, const C: usize>(
@@ -30,10 +17,7 @@ pub trait ConstAdd<T: Copy + Default>: Sized {
         Self: HasStorage<T, { R * C }>;
 }
 
-/* ──────────────────────────────────────────────────────────────────────── */
-/*  Tensor2 + scalar  (generic)                                            */
-/* ──────────────────────────────────────────────────────────────────────── */
-
+//tensor2 + scalar
 impl<T, S, const R: usize, const C: usize, B> Add<S> for Tensor2<T, R, C, B>
 where
     T: Copy + Default + Add<Output = T>,
@@ -51,10 +35,7 @@ where
     }
 }
 
-/* ──────────────────────────────────────────────────────────────────────── */
-/*  scalar + Tensor2  (one impl per primitive scalar)                      */
-/* ──────────────────────────────────────────────────────────────────────── */
-
+//scalar + tensor2
 macro_rules! impl_scalar_plus_tensor {
     ($($Scalar:ty),* $(,)?) => {$(
         impl<T, const R: usize, const C: usize, B>
@@ -78,5 +59,4 @@ macro_rules! impl_scalar_plus_tensor {
     )*};
 }
 
-/* choose scalar types you want on the LHS */
 impl_scalar_plus_tensor!(i8, i16, i32, u8, u16, u32, f32, f64);

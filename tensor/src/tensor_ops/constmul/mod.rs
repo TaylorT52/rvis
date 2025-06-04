@@ -17,6 +17,7 @@ pub trait ConstMul<T: Copy + Default>: Sized {
         Self: HasStorage<T, { R * C }>;
 }
 
+//scalar * tensor2
 impl<T, S, const R: usize, const C: usize, B> Mul<S> for Tensor2<T, R, C, B>
 where
     T: Copy + Default + Mul<Output = T>,
@@ -34,6 +35,7 @@ where
     }
 }
 
+//tensor2 * scalar
 macro_rules! impl_scalar_times_tensor {
     ($($Scalar:ty),* $(,)?) => {$(
         impl<T, const R: usize, const C: usize, B>
