@@ -7,9 +7,9 @@ use tensor::tensor::{StaticShape, Tensor2};
 fn main() {
     let a = Tensor2::<f32, 2, 3, NaiveCpu>::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
     let b = Tensor2::<f32, 3, 2, NaiveCpu>::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-    let c = b * 5;
-    let d = 5 * a;
-    let e = d + 1;
-    let _f = 1 + e;
+    let c = b * 5.0;
+    let d = a * 5.0;
+    let e = d + 1.0;
+    let _f = e + 1.0;
     println!("{:?}", c.shape());
 }
