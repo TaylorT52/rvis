@@ -1,5 +1,6 @@
 use crate::storage::HasStorage;
 use std::marker::PhantomData;
+use std::fmt;
 
 pub trait StaticShape {
     const D: usize;
@@ -97,6 +98,56 @@ macro_rules! impl_tensor_rank {
 impl_tensor_rank!(Tensor2, [R, C]);
 impl_tensor_rank!(Tensor3, [D0, D1, D2]);
 impl_tensor_rank!(Tensor4, [D0, D1, D3, D4]);
+
+/// Helper for rendering N-dimensional tensors with indentation.
+fn fmt_nd<T: fmt::Display>(
+    f: &mut fmt::Formatter<'_>,
+    data: &[T],
+    shape: &[usize],
+    depth: usize,
+) -> fmt::Result {
+    if depth + 1 == shape.len() {
+        write!(f, "[")?;
+        for i in 0..shape[depth] {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{}", data[i])?;
+        }
+        return write!(f, "]");
+    }
+
+    let chunk: usize = shape[depth + 1..].iter().product();
+    write!(f, "[")?;
+    for i in 0..shape[depth] {
+        if i > 0 {
+            write!(f, ",\n")?;
+            for _ in 0..=depth {
+                write!(f, " ")?;
+            }
+        }
+        fmt_nd(f, &data[i * chunk..(i + 1) * chunk], shape, depth + 1)?;
+    }
+    write!(f, "]")
+}
+
+macro_rules! impl_tensor_display {
+    ($name:ident, [$($dim:ident),+]) => {
+        impl<T, $(const $dim: usize,)+ S> fmt::Display for $name<T, $($dim,)+ S>
+        where
+            T: Copy + Default + fmt::Display,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
+        {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                fmt_nd(f, self.as_slice(), &[ $($dim),+ ], 0)
+            }
+        }
+    };
+}
+
+impl_tensor_display!(Tensor2, [R, C]);
+impl_tensor_display!(Tensor3, [D0, D1, D2]);
+impl_tensor_display!(Tensor4, [D0, D1, D3, D4]);
 
 // TODO: indexing
 // for indexing of 1, N
