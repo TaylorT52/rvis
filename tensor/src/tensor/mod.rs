@@ -23,7 +23,7 @@ macro_rules! impl_tensor_rank {
         pub struct $name<
             T,
             $(const $dim: usize,)+
-            S,          // default back‑end
+            S,
         >
         where
             T: Copy + Default,
@@ -43,7 +43,6 @@ macro_rules! impl_tensor_rank {
             const SHAPE: &'static [usize] = &[ $($dim),+ ];
         }
 
-        /* --- convenience constructors & access --- */
         impl<T, $(const $dim: usize,)+ S> $name<T, $($dim,)+ S>
         where
             T: Copy + Default,
@@ -59,6 +58,31 @@ macro_rules! impl_tensor_rank {
             #[inline]
             pub fn as_slice(&self) -> &[T] {
                 S::as_slice(&self.storage)
+            }
+        }
+
+        // ——— COPY + CLONE for each tensor rank ———
+        impl<T, $(const $dim: usize,)+ S> Copy for $name<T, $($dim,)+ S>
+        where
+            T: Copy + Default,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
+            // the storage must be Copy
+            S::Storage: Copy,
+        {}
+
+        impl<T, $(const $dim: usize,)+ S> Clone for $name<T, $($dim,)+ S>
+        where
+            T: Copy + Default,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
+            // the storage must be Clone
+            S::Storage: Clone,
+        {
+            #[inline]
+            fn clone(&self) -> Self {
+                Self {
+                    storage: self.storage.clone(),
+                    _p: PhantomData,
+                }
             }
         }
     };

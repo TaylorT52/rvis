@@ -16,7 +16,6 @@ pub trait MatMul<T: Copy + Default>: Sized {
         + HasStorage<T, { R * K }>;
 }
 
-//tensor-side * 
 impl<T, const R: usize, const C: usize, const K: usize, B> Mul<Tensor2<T, C, K, B>>
 for Tensor2<T, R, C, B>
 where
