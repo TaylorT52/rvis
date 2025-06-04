@@ -7,15 +7,15 @@ impl<T> ConstMul<T> for NaiveCpu
 where
     T: Copy + Default + Mul<Output = T>,
 {
-    fn constmul<const R: usize, const C: usize>(
-        a: &<Self as HasStorage<T, { R * C }>>::Storage,
+    fn constmul<const N: usize>(
+        a: &<Self as HasStorage<T, N>>::Storage,
         k: T,
-        out: &mut <Self as HasStorage<T, { R * C }>>::Storage,
+        out: &mut <Self as HasStorage<T, N>>::Storage,
     ) where
-        Self: HasStorage<T, { R * C }>,
+        Self: HasStorage<T, N>,
     {
-        let src = <Self as HasStorage<T, { R * C }>>::as_slice(a);
-        let dst = <Self as HasStorage<T, { R * C }>>::as_mut_slice(out);
+        let src = <Self as HasStorage<T, N>>::as_slice(a);
+        let dst = <Self as HasStorage<T, N>>::as_mut_slice(out);
         for (d, s) in dst.iter_mut().zip(src.iter()) {
             *d = *s * k;
         }
