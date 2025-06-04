@@ -1,4 +1,3 @@
-/* tensor_ops/constmul/naive_cpu.rs */
 use core::ops::Mul;
 use crate::storage::HasStorage;
 use crate::storage::naive_cpu::NaiveCpu;

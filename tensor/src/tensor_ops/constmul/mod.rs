@@ -1,4 +1,3 @@
-/* tensor_ops/constmul/mod.rs */
 pub mod cast;
 pub mod naive_cpu;
 
@@ -35,10 +34,6 @@ where
     }
 }
 
-/* ------------------------------------------------------------- */
-/*  scalar * Tensor2  (for concrete primitive scalars)           */
-/* ------------------------------------------------------------- */
-
 macro_rules! impl_scalar_times_tensor {
     ($($Scalar:ty),* $(,)?) => {$(
         impl<T, const R: usize, const C: usize, B>
@@ -46,13 +41,12 @@ macro_rules! impl_scalar_times_tensor {
         where
             T: Copy + Default + core::ops::Mul<Output = T>,
             B: ConstMul<T> + HasStorage<T, { R * C }>,
-            $Scalar: CastInto<T> + Copy,           // ← NEW: ensure conversion exists
+            $Scalar: CastInto<T> + Copy,
         {
             type Output = Tensor2<T, R, C, B>;
 
             #[inline]
             fn mul(self, rhs: Tensor2<T, R, C, B>) -> Self::Output {
-                // convert the scalar, call the backend once
                 let k: T = self.cast();
                 let mut out = <B as HasStorage<T, { R * C }>>::storage_uninit();
                 B::constmul::<R, C>(&rhs.storage, k, &mut out);
@@ -62,5 +56,4 @@ macro_rules! impl_scalar_times_tensor {
     )*};
 }
 
-/* choose whichever primitive scalar types you want on the LHS */
 impl_scalar_times_tensor!(i8, i16, i32, u8, u16, u32, f32, f64);
