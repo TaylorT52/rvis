@@ -1,9 +1,9 @@
-use crate::backend::Backend;
-use core::ops::Mul;
+use crate::storage::HasStorage;
+use core::ops::{Add, Mul};
 use std::marker::PhantomData;
 
 pub trait StaticShape {
-    const D:     usize;
+    const D: usize;
     const SHAPE: &'static [usize];
 
     #[inline(always)]
@@ -17,73 +17,63 @@ pub trait StaticShape {
     fn size(&self) -> usize {
         Self::SHAPE.iter().copied().product()
     }
-
-    // TODO: strides
 }
 
 macro_rules! impl_tensor_rank {
     ($name:ident, [$($dim:ident),+]) => {
-        pub struct $name<T, $(const $dim: usize),+, B: Backend<T>>
+        pub struct $name<
+            T,
+            $(const $dim: usize,)+
+            S,          // default back‑end
+        >
         where
             T: Copy + Default,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
         {
-            storage: B::Storage,
-            _p: PhantomData<T>,
+            pub(crate) storage:
+                <S as HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>>::Storage,
+            pub(crate) _p: PhantomData<T>,
         }
 
-        impl<T, $(const $dim: usize),+, B: Backend<T>> StaticShape for $name<T, $($dim),+, B>
+        impl<T, $(const $dim: usize,)+ S> StaticShape for $name<T, $($dim,)+ S>
         where
             T: Copy + Default,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
         {
-            const D: usize = impl_tensor_rank!(@count_dims $($dim),*);
-            const SHAPE: &'static [usize] = &[ $($dim),* ];
+            const D: usize = impl_tensor_rank!(@count $($dim),+);
+            const SHAPE: &'static [usize] = &[ $($dim),+ ];
         }
 
-        impl<T, $(const $dim: usize),+, B: Backend<T>> $name<T, $($dim),+, B>
+        /* --- convenience constructors & access --- */
+        impl<T, $(const $dim: usize,)+ S> $name<T, $($dim,)+ S>
         where
             T: Copy + Default,
+            S: HasStorage<T, { impl_tensor_rank!(@prod $($dim),+) }>,
         {
-            pub fn new(data: [T; impl_tensor_rank!(@product $($dim),*)]) -> Self {
+            pub fn new(data: [T; impl_tensor_rank!(@prod $($dim),+)]) -> Self {
                 Self {
-                    storage: B::storage_from_vec(data.to_vec()),
+                    storage: S::storage_from_array(data),
                     _p: PhantomData,
                 }
+            }
+
+            #[inline]
+            pub fn as_slice(&self) -> &[T] {
+                S::as_slice(&self.storage)
             }
         }
     };
 
-    (@count_dims $head:ident $(, $tail:ident)*) => {
-        1 $(+ { let _ = $tail; 1 })*
-    };
-
-    (@product $head:ident $(, $tail:ident)*) => {
-        $head $( * $tail )*
-    };
+    /* helper rules */
+    (@count $first:ident $(,$rest:ident)+) => { 1 + impl_tensor_rank!(@count $($rest),+) };
+    (@count $only:ident)                   => { 1 };
+    (@prod  $first:ident $(,$rest:ident)+) => { $first * impl_tensor_rank!(@prod $($rest),+) };
+    (@prod  $only:ident)                   => { $only };
 }
 
 impl_tensor_rank!(Tensor2, [R, C]);
 impl_tensor_rank!(Tensor3, [D0, D1, D2]);
 impl_tensor_rank!(Tensor4, [D0, D1, D3, D4]);
-
-
-/// 2-dimensional matrix multiplication
-impl<T, const R: usize, const C: usize, const K: usize, B> Mul<Tensor2<T, C, K, B>>
-for Tensor2<T, R, C, B>
-where
-    T: Copy + Default + Mul<Output = T>,
-    B: Backend<T>,
-{
-    type Output = Tensor2<T, R, K, B>;
-
-    fn mul(self, rhs: Tensor2<T, C, K, B>) -> Self::Output {
-        let mut b = B::storage_uninit(R * K);
-        B::matmul::<R, C, K>(&self.storage, &rhs.storage, &mut b);
-        Self::Output {
-            storage: b,
-            _p: PhantomData,
-        }
-    }
-}
 
 // TODO: indexing
 // for indexing of 1, N

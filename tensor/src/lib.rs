@@ -6,7 +6,8 @@
 )]
 #![allow(incomplete_features)]
 
-pub mod backend;
 pub mod tensor;
+
+pub mod storage;
 
 pub mod tensor_ops;

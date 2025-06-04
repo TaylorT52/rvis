@@ -1,4 +1,4 @@
-mod naive_cpu;
+pub mod naive_cpu;
 
 pub trait HasStorage<T: Copy + Default, const N: usize> {
     type Storage;
