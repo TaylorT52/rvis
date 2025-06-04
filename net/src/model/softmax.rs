@@ -1,4 +1,5 @@
 use ndarray::{Array4, Array2, s};
+use ndarray::Axis;
 
 #[derive(Debug)]
 
@@ -74,9 +75,16 @@ impl Softmax {
 
     pub fn backward(&self, target: &Array2<f32>) -> Array4<f32> {
         let output = self.output.as_ref().expect("softmax fwd has to be previously implemented");
+        let mut grad = output.clone();
 
-        println!("output shape: {:?}", self.output.as_ref().unwrap().shape());
-        println!("target shape: {:?}", target.shape());
-        output - target
+        // Reshape target to match output shape
+        let target_4d = target.clone().insert_axis(Axis(2)).insert_axis(Axis(3));
+
+        // Compute gradient: output - target
+        for (g, t) in grad.iter_mut().zip(target_4d.iter()) {
+            *g -= t;
+        }
+
+        grad
     }
 }

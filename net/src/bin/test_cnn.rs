@@ -11,7 +11,7 @@ fn main() {
     println!("\n--- training ---");
     for i in 0..5 {
         println!("Epoch {}", i + 1);
-        let loss = model.train_batch(&x_train, &y_train, 0.01);
+        let loss = model.train_batch(&x_train, &y_train, 0.001);
         println!("  loss = {:.4}", loss);
     }
 
