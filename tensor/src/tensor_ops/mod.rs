@@ -4,3 +4,4 @@ pub mod elemwise;
 pub mod exp;
 pub mod matmul;
 pub mod log;
+pub mod broadcast_matmul;

@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 
 use tensor::storage::naive_cpu::NaiveCpu;
-use tensor::tensor::{StaticShape, Tensor2};
+use tensor::tensor::{StaticShape, Tensor2, Tensor3};
 
 fn main() {
     let a = Tensor2::<f32, 3, 3, NaiveCpu>::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]);

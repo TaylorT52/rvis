@@ -149,9 +149,5 @@ impl_tensor_display!(Tensor2, [R, C]);
 impl_tensor_display!(Tensor3, [D0, D1, D2]);
 impl_tensor_display!(Tensor4, [D0, D1, D3, D4]);
 
-// TODO: indexing
-// for indexing of 1, N
-// TODO: add/mul/sub/div for same shape
-// TODO: multiply/add/div/sub by constant
 // TODO: reshaping
 // TODO: transpose

@@ -75,7 +75,6 @@ mod bench {
         let b_mat = Tensor2::<f32, N, N, MetalGpu>::new([0.0; N * N]);
 
         b.iter(|| {
-            // black_box stops LLVM from deleting the call
             test::black_box(a.clone() * b_mat.clone());
         });
     }
