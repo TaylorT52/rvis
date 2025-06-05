@@ -1,7 +1,5 @@
 pub mod broadcast_matmul;
-pub mod constadd;
-pub mod constdiv;
-pub mod constmul;
+pub mod const_ops;
 pub mod conv;
 pub mod elemwise;
 pub mod exp;
