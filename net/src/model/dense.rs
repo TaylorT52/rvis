@@ -5,7 +5,7 @@ use rand::Rng;
 #[derive(Debug)]
 pub struct Dense {
     w: Array2<f32>, //[in, out]
-    b: Array1<f32>,   // [out]
+    b: Array1<f32>, // [out]
     grad_w: Array2<f32>,
     grad_b: Array1<f32>,
 }

@@ -1,10 +1,10 @@
-use ndarray::Axis;
+use ndarray::{Array2, Array4, Axis};
 use net::data::load_mnist_idx_batch;
-use net::model::SimpleCNN;
+use net::model::MnistCNN;
 
 fn main() {
     //init the mnist model
-    let mut model = SimpleCNN::new();
+    let mut model = MnistCNN::new();
 
     //load and train on 10,000 images
     let (x_train, y_train) = load_mnist_idx_batch(
@@ -14,23 +14,49 @@ fn main() {
     );
 
     println!("\n--- training ---");
+    let batch_size = 128;
+    let num_batches = x_train.shape()[0] / batch_size;
+    let mut learning_rate = 0.0005; // Smaller initial learning rate
+    let momentum = 0.9; // Add momentum
+
     for epoch in 1..=50 {
-        let loss = model.train_batch(&x_train, &y_train, 0.001);
-        println!("epoch {epoch}: loss = {loss:.4}");
+        let mut total_loss = 0.0;
+
+        //shuffle data
+        let mut indices: Vec<usize> = (0..x_train.shape()[0]).collect();
+        use rand::seq::SliceRandom;
+        indices.shuffle(&mut rand::thread_rng());
+
+        for i in 0..num_batches {
+            let start = i * batch_size;
+            let end = start + batch_size;
+
+            //mini-batch
+            let x_batch = x_train.select(Axis(0), &indices[start..end]);
+            let y_batch = y_train.select(Axis(0), &indices[start..end]);
+
+            let loss = model.train_batch(&x_batch, &y_batch, learning_rate);
+            total_loss += loss;
+        }
+
+        // Cosine learning rate decay
+        learning_rate = 0.0005 * (1.0 + (epoch as f32 * std::f32::consts::PI / 50.0).cos()) / 2.0;
+
+        let avg_loss = total_loss / num_batches as f32;
+        println!("epoch {epoch}: loss = {avg_loss:.4}, lr = {learning_rate:.6}");
     }
 
-    //test on 2,000 images (not trained on)
+    //test
     let (x_test, y_test) = load_mnist_idx_batch(
         "mnist/t10k-images-idx3-ubyte",
         "mnist/t10k-labels-idx1-ubyte",
         2_000,
     );
-    let probs = model.forward(&x_test);
+    let (probs, _, _) = model.forward(&x_test);
 
     println!("\n--- testing ---");
     let mut correct = 0;
     for (preds, target) in probs.axis_iter(Axis(0)).zip(y_test.axis_iter(Axis(0))) {
-        // preds shape: [10, 1, 1]
         let preds_flat = preds.into_shape((10,)).unwrap().to_owned();
 
         let pred_label = preds_flat

@@ -7,4 +7,5 @@ pub mod elemwise;
 pub mod exp;
 pub mod log;
 pub mod matmul;
+pub mod reduce;
 pub mod relu;
