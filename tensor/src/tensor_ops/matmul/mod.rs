@@ -1,4 +1,5 @@
 pub mod naive_cpu;
+#[cfg(target_os = "macos")]
 mod metal_gpu;
 
 use crate::storage::HasStorage;
