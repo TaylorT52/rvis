@@ -1,7 +1,8 @@
+pub mod broadcast_matmul;
 pub mod constadd;
+pub mod constdiv;
 pub mod constmul;
 pub mod elemwise;
 pub mod exp;
-pub mod matmul;
 pub mod log;
-pub mod broadcast_matmul;
+pub mod matmul;

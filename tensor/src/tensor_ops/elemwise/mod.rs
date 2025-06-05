@@ -7,7 +7,7 @@ pub mod naive_cpu;
 
 use crate::storage::HasStorage;
 use crate::tensor::Tensor2;
-use core::ops::{Add, Mul, Sub};
+use core::ops::{Add, Div, Mul, Sub};
 
 /// Trait for backends that support element-wise tensor addition.
 pub trait ElemAdd<T: Copy + Default>: Sized {
@@ -39,6 +39,17 @@ pub trait ElemMul<T: Copy + Default>: Sized {
         out: &mut <Self as HasStorage<T, { R * C }>>::Storage,
     ) where
         T: Mul<Output = T>,
+        Self: HasStorage<T, { R * C }>;
+}
+
+/// Trait for backends that support element-wise tensor division.
+pub trait ElemDiv<T: Copy + Default>: Sized {
+    fn elem_div<const R: usize, const C: usize>(
+        a: &<Self as HasStorage<T, { R * C }>>::Storage,
+        b: &<Self as HasStorage<T, { R * C }>>::Storage,
+        out: &mut <Self as HasStorage<T, { R * C }>>::Storage,
+    ) where
+        T: Div<Output = T>,
         Self: HasStorage<T, { R * C }>;
 }
 
@@ -87,6 +98,22 @@ where
     pub fn elem_mul(self, rhs: Tensor2<T, R, C, B>) -> Self {
         let mut out = <B as HasStorage<T, { R * C }>>::storage_uninit();
         B::elem_mul::<R, C>(&self.storage, &rhs.storage, &mut out);
+        Self {
+            storage: out,
+            _p: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<T, const R: usize, const C: usize, B> Tensor2<T, R, C, B>
+where
+    T: Copy + Default + Div<Output = T>,
+    B: ElemDiv<T> + HasStorage<T, { R * C }>,
+{
+    #[inline]
+    pub fn elem_div(self, rhs: Tensor2<T, R, C, B>) -> Self {
+        let mut out = <B as HasStorage<T, { R * C }>>::storage_uninit();
+        B::elem_div::<R, C>(&self.storage, &rhs.storage, &mut out);
         Self {
             storage: out,
             _p: core::marker::PhantomData,
