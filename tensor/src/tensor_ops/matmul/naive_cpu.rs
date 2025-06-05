@@ -1,10 +1,10 @@
 //! NaiveCPU backend – reference “school‑book” implementation.
 //! Works for any `T` that supports `Default + Add + Mul`.
 
-use core::ops::{Add, Mul};
-use crate::storage::HasStorage;
 use crate::storage::naive_cpu::NaiveCpu;
+use crate::storage::HasStorage;
 use crate::tensor_ops::matmul::MatMul;
+use core::ops::{Add, Mul};
 
 impl<T> MatMul<T> for NaiveCpu
 where
@@ -15,9 +15,7 @@ where
         b: &<Self as HasStorage<T, { C * K }>>::Storage,
         out: &mut <Self as HasStorage<T, { R * K }>>::Storage,
     ) where
-        Self: HasStorage<T, { R * C }>
-        + HasStorage<T, { C * K }>
-        + HasStorage<T, { R * K }>,
+        Self: HasStorage<T, { R * C }> + HasStorage<T, { C * K }> + HasStorage<T, { R * K }>,
     {
         // Get flat slices we can index into.
         let a = <Self as HasStorage<T, { R * C }>>::as_slice(a);
@@ -38,9 +36,9 @@ where
 
 #[cfg(test)]
 mod bench {
-    use test::Bencher;
     use crate::storage::naive_cpu::NaiveCpu;
     use crate::tensor::Tensor2;
+    use test::Bencher;
 
     #[bench]
     fn matmul_128x128(b: &mut Bencher) {

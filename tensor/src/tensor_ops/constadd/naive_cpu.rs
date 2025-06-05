@@ -1,7 +1,7 @@
 //! NaiveCPU backend – element-wise scalar addition.
 
-use crate::storage::HasStorage;
 use crate::storage::naive_cpu::NaiveCpu;
+use crate::storage::HasStorage;
 use crate::tensor_ops::constadd::ConstAdd;
 use core::ops::Add;
 

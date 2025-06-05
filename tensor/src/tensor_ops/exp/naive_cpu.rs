@@ -1,23 +1,21 @@
 use crate::storage::naive_cpu::NaiveCpu;
 use crate::storage::HasStorage;
-use crate::tensor_ops::constmul::ConstMul;
-use core::ops::Mul;
+use crate::tensor_ops::exp::{Exp, ExpElem};
 
-impl<T> ConstMul<T> for NaiveCpu
+impl<T> Exp<T> for NaiveCpu
 where
-    T: Copy + Default + Mul<Output = T>,
+    T: ExpElem,
 {
-    fn constmul<const N: usize>(
+    fn exp<const N: usize>(
         a: &<Self as HasStorage<T, N>>::Storage,
-        k: T,
         out: &mut <Self as HasStorage<T, N>>::Storage,
     ) where
         Self: HasStorage<T, N>,
     {
         let src = <Self as HasStorage<T, N>>::as_slice(a);
         let dst = <Self as HasStorage<T, N>>::as_mut_slice(out);
-        for (d, s) in dst.iter_mut().zip(src.iter()) {
-            *d = *s * k;
+        for i in 0..N {
+            dst[i] = src[i].exp();
         }
     }
 }
