@@ -11,5 +11,21 @@ fn main() {
     let d = a * 5.0;
     let e = d + 1.0;
     let _f = e + 1.0;
-    println!("{}", c);
+
+    let g = Tensor2::<f32, 3, 3, NaiveCpu>::new([
+        1.0, 2.0, 3.0,
+        4.0, 5.0, 6.0,
+        7.0, 8.0, 9.0,
+    ]);
+
+    let h = Tensor2::<f32, 3, 3, NaiveCpu>::new([
+        1.0, 2.0, 3.0,
+        4.0, 5.0, 6.0,
+        7.0, 8.0, 9.0,
+    ]);
+
+
+    let i = (h.clone() * g.clone() * 5.2) + 1.0;
+
+    println!("i =\n{}", i);
 }
