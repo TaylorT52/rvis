@@ -1,8 +1,8 @@
 //! NaiveCPU backend – reference “school‑book” implementation.
 //! Works for any `T` that supports `Default + Add + Mul`.
 
-use crate::storage::naive_cpu::NaiveCpu;
 use crate::storage::HasStorage;
+use crate::storage::naive_cpu::NaiveCpu;
 use crate::tensor_ops::matmul::MatMul;
 use core::ops::{Add, Mul};
 

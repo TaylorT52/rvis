@@ -1,5 +1,5 @@
-use crate::storage::naive_cpu::NaiveCpu;
 use crate::storage::HasStorage;
+use crate::storage::naive_cpu::NaiveCpu;
 use crate::tensor_ops::exp::{Exp, ExpElem};
 
 impl<T> Exp<T> for NaiveCpu

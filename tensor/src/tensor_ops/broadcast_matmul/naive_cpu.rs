@@ -6,19 +6,14 @@ impl<T> BroadcastMatMul3<T> for NaiveCpu
 where
     T: Copy + Default + core::ops::Add<Output = T> + core::ops::Mul<Output = T>,
 {
-    fn matmul3<
-        const BATCH: usize,
-        const R: usize,
-        const C: usize,
-        const K: usize,
-    >(
+    fn matmul3<const BATCH: usize, const R: usize, const C: usize, const K: usize>(
         a: &<Self as HasStorage<T, { BATCH * R * C }>>::Storage,
         b: &<Self as HasStorage<T, { C * K }>>::Storage,
         out: &mut <Self as HasStorage<T, { BATCH * R * K }>>::Storage,
     ) where
         Self: HasStorage<T, { BATCH * R * C }>
-        + HasStorage<T, { C * K }>
-        + HasStorage<T, { BATCH * R * K }>,
+            + HasStorage<T, { C * K }>
+            + HasStorage<T, { BATCH * R * K }>,
     {
         let a = <Self as HasStorage<T, { BATCH * R * C }>>::as_slice(a);
         let b = <Self as HasStorage<T, { C * K }>>::as_slice(b);
@@ -42,20 +37,14 @@ impl<T> BroadcastMatMul4<T> for NaiveCpu
 where
     T: Copy + Default + core::ops::Add<Output = T> + core::ops::Mul<Output = T>,
 {
-    fn matmul4<
-        const B0: usize,
-        const B1: usize,
-        const R: usize,
-        const C: usize,
-        const K: usize,
-    >(
+    fn matmul4<const B0: usize, const B1: usize, const R: usize, const C: usize, const K: usize>(
         a: &<Self as HasStorage<T, { B0 * B1 * R * C }>>::Storage,
         b: &<Self as HasStorage<T, { C * K }>>::Storage,
         out: &mut <Self as HasStorage<T, { B0 * B1 * R * K }>>::Storage,
     ) where
         Self: HasStorage<T, { B0 * B1 * R * C }>
-        + HasStorage<T, { C * K }>
-        + HasStorage<T, { B0 * B1 * R * K }>,
+            + HasStorage<T, { C * K }>
+            + HasStorage<T, { B0 * B1 * R * K }>,
     {
         let a = <Self as HasStorage<T, { B0 * B1 * R * C }>>::as_slice(a);
         let b = <Self as HasStorage<T, { C * K }>>::as_slice(b);

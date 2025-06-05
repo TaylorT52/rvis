@@ -47,7 +47,8 @@ where
     }
 }
 
-impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Tensor4<T, D0, D1, D3, D4, B>
+impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B>
+    Tensor4<T, D0, D1, D3, D4, B>
 where
     T: Copy + Default + Float,
     B: Log<T> + HasStorage<T, { D0 * (D1 * (D3 * D4)) }>,

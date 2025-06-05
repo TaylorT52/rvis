@@ -1,6 +1,5 @@
-pub mod naive_cpu;
-#[cfg(target_os = "macos")]
 pub mod metal_gpu;
+pub mod naive_cpu;
 
 pub trait HasStorage<T: Copy + Default, const N: usize> {
     type Storage;

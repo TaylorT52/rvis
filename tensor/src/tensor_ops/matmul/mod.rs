@@ -1,6 +1,6 @@
-pub mod naive_cpu;
 #[cfg(target_os = "macos")]
 mod metal_gpu;
+pub mod naive_cpu;
 
 use crate::storage::HasStorage;
 use crate::tensor::Tensor2;

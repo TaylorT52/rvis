@@ -40,10 +40,7 @@ fn main() {
             .map(|(idx, _)| idx)
             .unwrap();
 
-        let true_label = target
-            .iter()
-            .position(|&v| (v - 1.0).abs() < 1e-6)
-            .unwrap();
+        let true_label = target.iter().position(|&v| (v - 1.0).abs() < 1e-6).unwrap();
 
         if pred_label == true_label {
             correct += 1;
