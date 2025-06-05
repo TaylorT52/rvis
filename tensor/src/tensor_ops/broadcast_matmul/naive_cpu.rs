@@ -7,17 +7,17 @@ where
     T: Copy + Default + core::ops::Add<Output = T> + core::ops::Mul<Output = T>,
 {
     fn matmul3<const BATCH: usize, const R: usize, const C: usize, const K: usize>(
-        a: &<Self as HasStorage<T, { BATCH * R * C }>>::Storage,
+        a: &<Self as HasStorage<T, { BATCH * (R * C) }>>::Storage,
         b: &<Self as HasStorage<T, { C * K }>>::Storage,
-        out: &mut <Self as HasStorage<T, { BATCH * R * K }>>::Storage,
+        out: &mut <Self as HasStorage<T, { BATCH * (R * K) }>>::Storage,
     ) where
-        Self: HasStorage<T, { BATCH * R * C }>
+        Self: HasStorage<T, { BATCH * (R * C) }>
             + HasStorage<T, { C * K }>
-            + HasStorage<T, { BATCH * R * K }>,
+            + HasStorage<T, { BATCH * (R * K) }>,
     {
-        let a = <Self as HasStorage<T, { BATCH * R * C }>>::as_slice(a);
+        let a = <Self as HasStorage<T, { BATCH * (R * C) }>>::as_slice(a);
         let b = <Self as HasStorage<T, { C * K }>>::as_slice(b);
-        let o = <Self as HasStorage<T, { BATCH * R * K }>>::as_mut_slice(out);
+        let o = <Self as HasStorage<T, { BATCH * (R * K) }>>::as_mut_slice(out);
 
         for batch in 0..BATCH {
             for r in 0..R {
@@ -38,17 +38,17 @@ where
     T: Copy + Default + core::ops::Add<Output = T> + core::ops::Mul<Output = T>,
 {
     fn matmul4<const B0: usize, const B1: usize, const R: usize, const C: usize, const K: usize>(
-        a: &<Self as HasStorage<T, { B0 * B1 * R * C }>>::Storage,
+        a: &<Self as HasStorage<T, { B0 * (B1 * (R * C)) }>>::Storage,
         b: &<Self as HasStorage<T, { C * K }>>::Storage,
-        out: &mut <Self as HasStorage<T, { B0 * B1 * R * K }>>::Storage,
+        out: &mut <Self as HasStorage<T, { B0 * (B1 * (R * K)) }>>::Storage,
     ) where
-        Self: HasStorage<T, { B0 * B1 * R * C }>
+        Self: HasStorage<T, { B0 * (B1 * (R * C)) }>
             + HasStorage<T, { C * K }>
-            + HasStorage<T, { B0 * B1 * R * K }>,
+            + HasStorage<T, { B0 * (B1 * (R * K)) }>,
     {
-        let a = <Self as HasStorage<T, { B0 * B1 * R * C }>>::as_slice(a);
+        let a = <Self as HasStorage<T, { B0 * (B1 * (R * C)) }>>::as_slice(a);
         let b = <Self as HasStorage<T, { C * K }>>::as_slice(b);
-        let o = <Self as HasStorage<T, { B0 * B1 * R * K }>>::as_mut_slice(out);
+        let o = <Self as HasStorage<T, { B0 * (B1 * (R * K)) }>>::as_mut_slice(out);
 
         for i0 in 0..B0 {
             for i1 in 0..B1 {
