@@ -16,7 +16,7 @@ fn main() {
 
     let h = Tensor2::<f32, 3, 3, NaiveCpu>::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]);
 
-    let i = (g.clone() * h.clone() * 5.2) + 1.0;
+    let i = (g * h * 5.2) + 1.0;
 
     println!("i =\n{}", i);
 }
