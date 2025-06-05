@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+objc2 = "0.6.0"
+objc2-metal = "0.3.1"
+objc2-metal-performance-shaders = "0.3.1"

@@ -1,4 +1,5 @@
 pub mod naive_cpu;
+mod metal_gpu;
 
 use core::ops::{Add, Mul};
 use crate::storage::HasStorage;
