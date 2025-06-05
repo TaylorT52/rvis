@@ -1,6 +1,6 @@
 pub mod naive_cpu;
 
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul};2
 use crate::storage::HasStorage;
 use crate::tensor::{Tensor2, Tensor4};
 

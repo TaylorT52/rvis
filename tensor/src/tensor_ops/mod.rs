@@ -5,7 +5,6 @@ pub mod constmul;
 pub mod elemwise;
 pub mod exp;
 pub mod log;
-pub mod broadcast_matmul;
 pub mod reduce;
 pub mod relu;
 pub mod matmul;
