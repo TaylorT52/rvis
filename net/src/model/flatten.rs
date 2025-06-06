@@ -1,8 +1,8 @@
-use ndarray::{Array2, Array4, Axis};
+use tensor::tensor::{Tensor2, Tensor4};
+use tensor::storage::naive_cpu::NaiveCpu;
 
-#[derive(Debug)]
 pub struct Flatten {
-    input_shape: Option<(usize, usize, usize, usize)>, // (B, C, H, W)
+    input_shape: Option<(usize, usize, usize, usize)>, 
 }
 
 impl Flatten {

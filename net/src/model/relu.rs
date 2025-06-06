@@ -1,5 +1,8 @@
 use tensor::tensor::Tensor4;
 use tensor::storage::naive_cpu::NaiveCpu;
+use tensor::tensor_ops::matmul::MatMul;
+use tensor::tensor_ops::reduce::Sum3;
+use tensor::tensor_ops::const_ops::ConstMul;
 
 pub struct ReluLayer<const D0: usize, const D1: usize, const D3: usize, const D4: usize>
 where
