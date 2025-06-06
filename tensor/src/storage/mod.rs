@@ -1,3 +1,4 @@
+#[cfg(target_os = "macos")]
 pub mod metal_gpu;
 pub mod naive_cpu;
 
