@@ -1,26 +1,42 @@
-use ndarray::Array4;
+use tensor::tensor::Tensor4;
+use tensor::storage::naive_cpu::NaiveCpu;
 
-#[derive(Debug)]
-pub struct Relu {
-    input: Option<Array4<f32>>,
+pub struct ReluLayer<const D0: usize, const D1: usize, const D3: usize, const D4: usize>
+where
+    [(); D0 * (D1 * (D3 * D4))]:,
+{
+    input: Option<Tensor4<f32, D0, D1, D3, D4, NaiveCpu>>,
 }
 
-impl Relu {
+impl<const D0: usize, const D1: usize, const D3: usize, const D4: usize>
+    ReluLayer<D0, D1, D3, D4>
+where
+    [(); D0 * (D1 * (D3 * D4))]:,
+{
     pub fn new() -> Self {
-        return Self { input: None };
+        Self { input: None }
     }
 
-    pub fn forward(&mut self, input: &Array4<f32>) -> Array4<f32> {
-        let activated = input.mapv(|x| x.max(0.0));
-        self.input = Some(input.clone());
-        activated
+    //forward pass--uses backend relu on tensor
+    pub fn forward(
+        &mut self,
+        input: Tensor4<f32, D0, D1, D3, D4, NaiveCpu>,
+    ) -> Tensor4<f32, D0, D1, D3, D4, NaiveCpu> {
+        //does max (0, x) (.relu())
+        self.input = Some(input);
+        self.input.clone().unwrap().relu()
     }
 
-    pub fn backward(&self, grad_output: &Array4<f32>) -> Array4<f32> {
+    //backward pass--uses backend relu backprop on tensor
+    pub fn backward(
+        &self,
+        grad_output: Tensor4<f32, D0, D1, D3, D4, NaiveCpu>,
+    ) -> Tensor4<f32, D0, D1, D3, D4, NaiveCpu> {
         let input = self
             .input
             .as_ref()
-            .expect("relu fwd must be called before relu backward");
-        input.mapv(|x| if x > 0.0 { 1.0 } else { 0.0 }) * grad_output
+            .expect("ReLU forward must be called before backward");
+
+        Tensor4::relu_backward(input, &grad_output)
     }
 }

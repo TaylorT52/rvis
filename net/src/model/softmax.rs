@@ -72,9 +72,6 @@ impl Softmax {
             .output
             .as_ref()
             .expect("softmax fwd has to be previously implemented");
-
-        println!("output shape: {:?}", self.output.as_ref().unwrap().shape());
-        println!("target shape: {:?}", target.shape());
         output - target
     }
 }

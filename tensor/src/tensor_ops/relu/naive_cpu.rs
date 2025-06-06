@@ -21,6 +21,23 @@ where
             dst[i] = if v > zero { v } else { zero };
         }
     }
+
+    fn relu_backward<const N: usize>(
+        input: &<Self as HasStorage<T, N>>::Storage,
+        grad_output: &<Self as HasStorage<T, N>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, N>>::Storage,
+    ) where
+        Self: HasStorage<T, N>,
+    {
+        let input_data = <Self as HasStorage<T, N>>::as_slice(input);
+        let grad_out = <Self as HasStorage<T, N>>::as_slice(grad_output);
+        let grad_in = <Self as HasStorage<T, N>>::as_mut_slice(grad_input);
+        let zero = T::default();
+
+        for i in 0..N {
+            grad_in[i] = if input_data[i] > zero { grad_out[i] } else { zero };
+        }
+    }
 }
 
 #[cfg(test)]

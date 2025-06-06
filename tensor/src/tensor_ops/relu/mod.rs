@@ -15,6 +15,13 @@ pub trait Relu<T: Copy + Default + PartialOrd>: Sized {
         out: &mut <Self as HasStorage<T, N>>::Storage,
     ) where
         Self: HasStorage<T, N>;
+
+    fn relu_backward<const N: usize>(
+        input: &<Self as HasStorage<T, N>>::Storage,
+        grad_output: &<Self as HasStorage<T, N>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, N>>::Storage,
+    ) where
+        Self: HasStorage<T, N>;
 }
 
 impl<T, const R: usize, const C: usize, B> Tensor2<T, R, C, B>
@@ -63,6 +70,23 @@ where
         B::relu::<{ D0 * (D1 * (D3 * D4)) }>(&self.storage, &mut out);
         Self {
             storage: out,
+            _p: core::marker::PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn relu_backward(
+        input: &Self,
+        grad_output: &Self,
+    ) -> Self {
+        let mut grad_input = <B as HasStorage<T, { D0 * (D1 * (D3 * D4)) }>>::storage_uninit();
+        B::relu_backward::<{ D0 * (D1 * (D3 * D4)) }>(
+            &input.storage,
+            &grad_output.storage,
+            &mut grad_input,
+        );
+        Self {
+            storage: grad_input,
             _p: core::marker::PhantomData,
         }
     }

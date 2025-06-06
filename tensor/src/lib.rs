@@ -11,7 +11,5 @@
 extern crate test;
 
 pub mod tensor;
-
 pub mod storage;
-
 pub mod tensor_ops;

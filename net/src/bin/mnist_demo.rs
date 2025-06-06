@@ -3,10 +3,8 @@ use net::data::load_mnist_idx_batch;
 use net::model::MnistCNN;
 
 fn main() {
-    //init the mnist model
     let mut model = MnistCNN::new();
 
-    //load and train on 10,000 images
     let (x_train, y_train) = load_mnist_idx_batch(
         "mnist/train-images-idx3-ubyte",
         "mnist/train-labels-idx1-ubyte",
@@ -16,10 +14,11 @@ fn main() {
     println!("\n--- training ---");
     let batch_size = 128;
     let num_batches = x_train.shape()[0] / batch_size;
-    let mut learning_rate = 0.0005; // Smaller initial learning rate
-    let momentum = 0.9; // Add momentum
+    let mut learning_rate = 0.0005; 
+    let momentum = 0.9; 
+    let mut epochs = 10;
 
-    for epoch in 1..=50 {
+    for epoch in 1..=epochs {
         let mut total_loss = 0.0;
 
         //shuffle data
@@ -52,7 +51,7 @@ fn main() {
         "mnist/t10k-labels-idx1-ubyte",
         2_000,
     );
-    let (probs, _, _) = model.forward(&x_test);
+    let (probs, _) = model.forward(&x_test);
 
     println!("\n--- testing ---");
     let mut correct = 0;
