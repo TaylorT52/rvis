@@ -1,7 +1,7 @@
-use std::ops::{Add, Mul};
 use crate::storage::HasStorage;
 use crate::storage::naive_cpu::NaiveCpu;
 use crate::tensor_ops::broadcast_conv::{BroadcastConv3, BroadcastConv4};
+use std::ops::{Add, Mul};
 
 impl<T> BroadcastConv3<T> for NaiveCpu
 where
@@ -13,13 +13,15 @@ where
         output: &mut <Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::Storage,
     ) where
         Self: HasStorage<T, { BATCH * (H * W) }>
-        + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>,
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>,
     {
         // Convert storages into flat slices:
         let inp = <Self as HasStorage<T, { BATCH * (H * W) }>>::as_slice(input);
         let ker = <Self as HasStorage<T, { KH * KW }>>::as_slice(kernel);
-        let out = <Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::as_mut_slice(output);
+        let out = <Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::as_mut_slice(
+            output,
+        );
 
         let out_h = H - KH + 1;
         let out_w = W - KW + 1;
@@ -67,12 +69,15 @@ where
         output: &mut <Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::Storage,
     ) where
         Self: HasStorage<T, { B0 * (B1 * (H * W)) }>
-        + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>,
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>,
     {
         let inp = <Self as HasStorage<T, { B0 * (B1 * (H * W)) }>>::as_slice(input);
         let ker = <Self as HasStorage<T, { KH * KW }>>::as_slice(kernel);
-        let out = <Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::as_mut_slice(output);
+        let out =
+            <Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::as_mut_slice(
+                output,
+            );
 
         let out_h = H - KH + 1;
         let out_w = W - KW + 1;

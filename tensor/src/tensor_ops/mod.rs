@@ -1,3 +1,4 @@
+pub mod broadcast_conv;
 pub mod broadcast_matmul;
 pub mod broadcast_const_ops;
 pub mod const_ops;
@@ -8,4 +9,3 @@ pub mod log;
 pub mod matmul;
 pub mod reduce;
 pub mod relu;
-pub mod broadcast_conv;

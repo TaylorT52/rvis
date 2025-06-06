@@ -1,9 +1,5 @@
-//! Broadcasted matrix-multiplication operators and backend traits.
-//!
-//! This module adds compile-time shape‑checked matmul for 3‑D and 4‑D tensors
-//! that broadcast over one or two batch dimensions.
-
-#![allow(clippy::needless_range_loop)]
+pub mod naive_cpu;
+pub mod metal_gpu;
 
 use crate::storage::HasStorage;
 use crate::tensor::{Tensor2, Tensor3, Tensor4};

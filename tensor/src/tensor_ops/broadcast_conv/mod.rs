@@ -1,8 +1,8 @@
-mod naive_cpu;
+pub mod naive_cpu;
 
-use std::ops::{Add, Mul};
 use crate::storage::HasStorage;
 use crate::tensor::{Tensor2, Tensor3, Tensor4};
+use std::ops::{Add, Mul};
 
 pub trait BroadcastConv3<T: Copy + Default>: Sized {
     /// Given an input of shape `[BATCH × (H×W)]` and a kernel of shape `[KH×KW]`,
@@ -13,8 +13,8 @@ pub trait BroadcastConv3<T: Copy + Default>: Sized {
         output: &mut <Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::Storage,
     ) where
         Self: HasStorage<T, { BATCH * (H * W) }>
-        + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>;
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>;
 }
 
 pub trait BroadcastConv4<T: Copy + Default>: Sized {
@@ -33,8 +33,8 @@ pub trait BroadcastConv4<T: Copy + Default>: Sized {
         output: &mut <Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::Storage,
     ) where
         Self: HasStorage<T, { B0 * (B1 * (H * W)) }>
-        + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>;
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>;
 }
 
 impl<T, const BATCH: usize, const H: usize, const W: usize, B> Tensor3<T, BATCH, H, W, B>
@@ -50,10 +50,12 @@ where
         kernel: &Tensor2<T, KH, KW, B>,
     ) -> Tensor3<T, BATCH, { H - KH + 1 }, { W - KW + 1 }, B>
     where
-        B: BroadcastConv3<T> + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>,
+        B: BroadcastConv3<T>
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>,
     {
-        let mut out = <B as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::storage_uninit();
+        let mut out =
+            <B as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::storage_uninit();
         B::conv3::<BATCH, H, W, KH, KW>(&self.storage, &kernel.storage, &mut out);
         Tensor3 {
             storage: out,
@@ -62,7 +64,8 @@ where
     }
 }
 
-impl<T, const B0: usize, const B1: usize, const H: usize, const W: usize, B> Tensor4<T, B0, B1, H, W, B>
+impl<T, const B0: usize, const B1: usize, const H: usize, const W: usize, B>
+    Tensor4<T, B0, B1, H, W, B>
 where
     T: Copy + Default + Add<Output = T> + Mul<Output = T>,
     B: HasStorage<T, { B0 * (B1 * (H * W)) }>,
@@ -75,10 +78,12 @@ where
         kernel: &Tensor2<T, KH, KW, B>,
     ) -> Tensor4<T, B0, B1, { H - KH + 1 }, { W - KW + 1 }, B>
     where
-        B: BroadcastConv4<T> + HasStorage<T, { KH * KW }>
-        + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>,
+        B: BroadcastConv4<T>
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>,
     {
-        let mut out = <B as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::storage_uninit();
+        let mut out =
+            <B as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::storage_uninit();
         B::conv4::<B0, B1, H, W, KH, KW>(&self.storage, &kernel.storage, &mut out);
         Tensor4 {
             storage: out,

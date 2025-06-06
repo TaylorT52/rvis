@@ -153,7 +153,8 @@ where
     }
 }
 
-impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Add<T> for Tensor4<T, D0, D1, D3, D4, B>
+impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Add<T>
+    for Tensor4<T, D0, D1, D3, D4, B>
 where
     T: Copy + Default + Add<Output = T>,
     B: ConstAdd<T> + HasStorage<T, { D0 * (D1 * (D3 * D4)) }>,
@@ -172,7 +173,8 @@ where
     }
 }
 
-impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Mul<T> for Tensor4<T, D0, D1, D3, D4, B>
+impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Mul<T>
+    for Tensor4<T, D0, D1, D3, D4, B>
 where
     T: Copy + Default + Mul<Output = T>,
     B: ConstMul<T> + HasStorage<T, { D0 * (D1 * (D3 * D4)) }>,
@@ -191,7 +193,8 @@ where
     }
 }
 
-impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Div<T> for Tensor4<T, D0, D1, D3, D4, B>
+impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B> Div<T>
+    for Tensor4<T, D0, D1, D3, D4, B>
 where
     T: Copy + Default + Div<Output = T>,
     B: ConstDiv<T> + HasStorage<T, { D0 * (D1 * (D3 * D4)) }>,
