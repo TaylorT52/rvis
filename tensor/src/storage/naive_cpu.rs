@@ -17,6 +17,24 @@ impl<T: Copy + Default, const N: usize> HasStorage<T, N> for NaiveCpu {
     }
 
     #[inline]
+    fn storage_zeroes() -> Self::Storage {
+        [T::default(); N]
+    }
+
+    #[inline]
+    fn storage_ones() -> Self::Storage
+    where
+        T: num_traits::One,
+    {
+        [T::one(); N]
+    }
+
+    #[inline]
+    fn storage_full(val: T) -> Self::Storage {
+        [val; N]
+    }
+
+    #[inline]
     fn as_slice(storage: &Self::Storage) -> &[T] {
         storage
     }

@@ -68,6 +68,63 @@ impl<const N: usize> HasStorage<f32, N> for MetalGpu {
         MetalGpuStorage { buffer, len: N }
     }
 
+    fn storage_zeroes() -> Self::Storage {
+        let len_bytes = N * core::mem::size_of::<f32>();
+        let device = &MetalGpu::shared().device;
+
+        let vec = vec![0.0_f32; N];
+        let ptr = NonNull::<c_void>::new(vec.as_ptr() as *mut c_void).unwrap();
+        let buffer = unsafe {
+            device
+                .newBufferWithBytes_length_options(
+                    ptr,
+                    len_bytes,
+                    MTLResourceOptions::StorageModeShared,
+                )
+                .expect("buffer alloc")
+        };
+
+        MetalGpuStorage { buffer, len: N }
+    }
+
+    fn storage_ones() -> Self::Storage {
+        let len_bytes = N * core::mem::size_of::<f32>();
+        let device = &MetalGpu::shared().device;
+
+        let vec = vec![1.0_f32; N];
+        let ptr = NonNull::<c_void>::new(vec.as_ptr() as *mut c_void).unwrap();
+        let buffer = unsafe {
+            device
+                .newBufferWithBytes_length_options(
+                    ptr,
+                    len_bytes,
+                    MTLResourceOptions::StorageModeShared,
+                )
+                .expect("buffer alloc")
+        };
+
+        MetalGpuStorage { buffer, len: N }
+    }
+
+    fn storage_full(val: f32) -> Self::Storage {
+        let len_bytes = N * core::mem::size_of::<f32>();
+        let device = &MetalGpu::shared().device;
+
+        let vec = vec![val; N];
+        let ptr = NonNull::<c_void>::new(vec.as_ptr() as *mut c_void).unwrap();
+        let buffer = unsafe {
+            device
+                .newBufferWithBytes_length_options(
+                    ptr,
+                    len_bytes,
+                    MTLResourceOptions::StorageModeShared,
+                )
+                .expect("buffer alloc")
+        };
+
+        MetalGpuStorage { buffer, len: N }
+    }
+
     fn as_slice(_: &Self::Storage) -> &[f32] {
         panic!("CPU access to GPU buffer")
     }

@@ -57,6 +57,33 @@ macro_rules! impl_tensor_rank {
             }
 
             #[inline]
+            pub fn zeroes() -> Self {
+                Self {
+                    storage: S::storage_zeroes(),
+                    _p: PhantomData,
+                }
+            }
+
+            #[inline]
+            pub fn ones() -> Self
+            where
+                T: num_traits::One,
+            {
+                Self {
+                    storage: S::storage_ones(),
+                    _p: PhantomData,
+                }
+            }
+
+            #[inline]
+            pub fn full(val: T) -> Self {
+                Self {
+                    storage: S::storage_full(val),
+                    _p: PhantomData,
+                }
+            }
+
+            #[inline]
             pub fn as_slice(&self) -> &[T] {
                 S::as_slice(&self.storage)
             }
