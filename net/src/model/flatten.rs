@@ -1,8 +1,9 @@
 use tensor::tensor::{Tensor2, Tensor4};
 use tensor::storage::naive_cpu::NaiveCpu;
+use tensor::storage::HasStorage;
 
 pub struct Flatten {
-    input_shape: Option<(usize, usize, usize, usize)>, 
+    input_shape: Option<(usize, usize, usize, usize)>, //(B, C, H, W)
 }
 
 impl Flatten {
@@ -13,27 +14,58 @@ impl Flatten {
     }
 
     /// Forward: Converts [B, C, H, W] -> [B, C*H*W]
-    pub fn forward(&mut self, input: &Array4<f32>) -> Array2<f32> {
-        let shape = input.shape();
-        let (b, c, h, w) = (shape[0], shape[1], shape[2], shape[3]);
-        self.input_shape = Some((b, c, h, w));
-
-        input.view()
-            .into_shape((b, c * h * w))
-            .expect("Failed to flatten input")
-            .to_owned()
+    pub fn forward<const B: usize, const C: usize, const H: usize, const W: usize>(
+        &mut self,
+        input: &Tensor4<f32, B, C, H, W, NaiveCpu>,
+    ) -> Tensor2<f32, B, { C * H * W }, NaiveCpu>
+    where
+        [(); B * C * H * W]:,
+        [(); B * (C * H * W)]:,
+    {
+        self.input_shape = Some((B, C, H, W));
+        
+        // Get input data as slice
+        let input_slice = input.as_slice();
+        
+        // Create output storage
+        let mut output_data = <NaiveCpu as HasStorage<f32, { B * (C * H * W) }>>::storage_uninit();
+        let output_slice = <NaiveCpu as HasStorage<f32, { B * (C * H * W) }>>::as_mut_slice(&mut output_data);
+        
+        // Since flatten just reshapes without changing memory layout,
+        // we can copy directly
+        output_slice.copy_from_slice(input_slice);
+        
+        // Create and return output tensor
+        Tensor2 {
+            storage: output_data,
+            _p: core::marker::PhantomData,
+        }
     }
-
-    /// Backward: Converts [B, C*H*W] -> [B, C, H, W]
-    pub fn backward(&self, grad_output: &Array2<f32>) -> Array4<f32> {
-        let (b, c, h, w) = self
-            .input_shape
-            .expect("Flatten: forward must be called before backward");
-
-        grad_output
-            .view()
-            .into_shape((b, c, h, w))
-            .expect("Failed to reshape gradient in Flatten")
-            .to_owned()
+    
+    /// Backward: Converts gradients from [B, C*H*W] back to [B, C, H, W]
+    pub fn backward<const B: usize, const C: usize, const H: usize, const W: usize>(
+        &self,
+        grad_output: &Tensor2<f32, B, { C * H * W }, NaiveCpu>,
+    ) -> Tensor4<f32, B, C, H, W, NaiveCpu>
+    where
+        [(); B * C * H * W]:,
+        [(); B * (C * H * W)]:,
+        [(); B * (C * (H * W))]:,
+    {
+        // Get gradient data as slice
+        let grad_slice = grad_output.as_slice();
+        
+        // Create output storage for gradients
+        let mut grad_input_data = <NaiveCpu as HasStorage<f32, { B * C * H * W }>>::storage_uninit();
+        let grad_input_slice = <NaiveCpu as HasStorage<f32, { B * C * H * W }>>::as_mut_slice(&mut grad_input_data);
+        
+        // Copy gradients (reshape doesn't change values, just interpretation)
+        grad_input_slice.copy_from_slice(grad_slice);
+        
+        // Create and return gradient tensor
+        Tensor4 {
+            storage: grad_input_data,
+            _p: core::marker::PhantomData,
+        }
     }
 }
