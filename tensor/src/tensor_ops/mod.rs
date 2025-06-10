@@ -9,3 +9,4 @@ pub mod log;
 pub mod matmul;
 pub mod reduce;
 pub mod relu;
+pub mod reshape;
