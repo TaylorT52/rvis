@@ -56,6 +56,13 @@ macro_rules! impl_tensor_rank {
                 }
             }
 
+            pub fn new_from_slice(data: &[T]) -> Self {
+                Self {
+                    storage: S::storage_from_array(data.try_into().unwrap()),
+                    _p: PhantomData,
+                }
+            }
+
             #[inline]
             pub fn zeroes() -> Self {
                 Self {
