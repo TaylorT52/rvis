@@ -37,4 +37,38 @@ where
             }
         }
     }
+
+    fn conv2_backward<const H: usize, const W: usize, const KH: usize, const KW: usize>(
+        kernel: &<Self as HasStorage<T, { KH * KW }>>::Storage,
+        grad_output: &<Self as HasStorage<T, { (H - KH + 1) * (W - KW + 1) }>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, { H * W }>>::Storage,
+    ) where
+        Self: HasStorage<T, { H * W }>
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { (H - KH + 1) * (W - KW + 1) }>,
+    {
+        let ker = <Self as HasStorage<T, { KH * KW }>>::as_slice(kernel);
+        let grad_out = <Self as HasStorage<T, { (H - KH + 1) * (W - KW + 1) }>>::as_slice(grad_output);
+        let grad_in = <Self as HasStorage<T, { H * W }>>::as_mut_slice(grad_input);
+
+        // zero initialize grad_in
+        for v in grad_in.iter_mut() {
+            *v = T::default();
+        }
+
+        let out_h = H - KH + 1;
+        let out_w = W - KW + 1;
+
+        for i in 0..out_h {
+            for j in 0..out_w {
+                let go = grad_out[i * out_w + j];
+                for ki in 0..KH {
+                    for kj in 0..KW {
+                        grad_in[(i + ki) * W + (j + kj)] =
+                            grad_in[(i + ki) * W + (j + kj)] + ker[ki * KW + kj] * go;
+                    }
+                }
+            }
+        }
+    }
 }

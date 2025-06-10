@@ -50,6 +50,43 @@ where
             }
         }
     }
+
+    fn conv3_backward<const BATCH: usize, const H: usize, const W: usize, const KH: usize, const KW: usize>(
+        kernel: &<Self as HasStorage<T, { KH * KW }>>::Storage,
+        grad_output: &<Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, { BATCH * (H * W) }>>::Storage,
+    ) where
+        Self: HasStorage<T, { BATCH * (H * W) }>
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>,
+    {
+        let ker = <Self as HasStorage<T, { KH * KW }>>::as_slice(kernel);
+        let grad_out = <Self as HasStorage<T, { BATCH * ((H - KH + 1) * (W - KW + 1)) }>>::as_slice(grad_output);
+        let grad_in = <Self as HasStorage<T, { BATCH * (H * W) }>>::as_mut_slice(grad_input);
+
+        for v in grad_in.iter_mut() {
+            *v = T::default();
+        }
+
+        let out_h = H - KH + 1;
+        let out_w = W - KW + 1;
+
+        for batch in 0..BATCH {
+            let base_in = batch * (H * W);
+            let base_out = batch * (out_h * out_w);
+            for i in 0..out_h {
+                for j in 0..out_w {
+                    let go = grad_out[base_out + i * out_w + j];
+                    for ki in 0..KH {
+                        for kj in 0..KW {
+                            grad_in[base_in + (i + ki) * W + (j + kj)] =
+                                grad_in[base_in + (i + ki) * W + (j + kj)] + ker[ki * KW + kj] * go;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl<T> BroadcastConv4<T> for NaiveCpu
@@ -104,6 +141,52 @@ where
 
                         let idx_out = base_out + i * out_w + j;
                         out[idx_out] = acc;
+                    }
+                }
+            }
+        }
+    }
+
+    fn conv4_backward<
+        const B0: usize,
+        const B1: usize,
+        const H: usize,
+        const W: usize,
+        const KH: usize,
+        const KW: usize,
+    >(
+        kernel: &<Self as HasStorage<T, { KH * KW }>>::Storage,
+        grad_output: &<Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, { B0 * (B1 * (H * W)) }>>::Storage,
+    ) where
+        Self: HasStorage<T, { B0 * (B1 * (H * W)) }>
+            + HasStorage<T, { KH * KW }>
+            + HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>,
+    {
+        let ker = <Self as HasStorage<T, { KH * KW }>>::as_slice(kernel);
+        let grad_out = <Self as HasStorage<T, { B0 * (B1 * ((H - KH + 1) * (W - KW + 1))) }>>::as_slice(grad_output);
+        let grad_in = <Self as HasStorage<T, { B0 * (B1 * (H * W)) }>>::as_mut_slice(grad_input);
+
+        for v in grad_in.iter_mut() {
+            *v = T::default();
+        }
+
+        let out_h = H - KH + 1;
+        let out_w = W - KW + 1;
+
+        for i0 in 0..B0 {
+            for i1 in 0..B1 {
+                let base_in = (i0 * B1 + i1) * (H * W);
+                let base_out = (i0 * B1 + i1) * (out_h * out_w);
+                for i in 0..out_h {
+                    for j in 0..out_w {
+                        let go = grad_out[base_out + i * out_w + j];
+                        for ki in 0..KH {
+                            for kj in 0..KW {
+                                grad_in[base_in + (i + ki) * W + (j + kj)] =
+                                    grad_in[base_in + (i + ki) * W + (j + kj)] + ker[ki * KW + kj] * go;
+                            }
+                        }
                     }
                 }
             }
