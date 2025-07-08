@@ -17,6 +17,6 @@ impl ReLU {
         [(); D0 * (D1 * D2)]:,
         MetalGpu: HasStorage<f32, {D0 * D1 * D2}>, 
     {
-        let _size = input;
+        input.relu(); 
     }
 }
