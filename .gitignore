@@ -2,3 +2,25 @@
 /target
 .idea
 .DS_Store
+
+# Security and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+config.json
+credentials.json
+
+# Rust specific
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
