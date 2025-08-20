@@ -1,75 +1,95 @@
-// src/tensor_ops/relu.rs
-use crate::storage::{HasStorage, metal_gpu::{MetalGpu, MetalGpuStorage}};
+//! Element-wise ReLU (rectified linear unit) for tensors.
+//!
+//! Backend implementers should implement [`Relu`].
 
-use objc2::rc::Id;
-use objc2_metal::{
-    MTLCommandQueue, MTLComputePipelineState, MTLSize,
-    // choose the exact imports your objc2_metal version exposes
-};
-use once_cell::sync::OnceCell;
+pub mod naive_cpu;
+#[cfg(target_os = "macos")]
+pub mod metal_gpu;
 
-/// A tiny trait that every backend implements if it *can* do ReLU in-place.
-pub trait ReluKernel<T> {
-    /// Apply ReLU to `buf` in-place. Length is encoded in the const generic.
-    fn relu<const N: usize>(buf: &mut <Self as HasStorage<T, N>>::Storage)
-    where
+use crate::storage::HasStorage;
+use crate::tensor::{Tensor2, Tensor3, Tensor4};
+use core::cmp::PartialOrd;
+
+/// Backend trait for element-wise ReLU.
+pub trait Relu<T: Copy + Default + PartialOrd>: Sized {
+    fn relu<const N: usize>(
+        a: &<Self as HasStorage<T, N>>::Storage,
+        out: &mut <Self as HasStorage<T, N>>::Storage,
+    ) where
+        Self: HasStorage<T, N>;
+
+    fn relu_backward<const N: usize>(
+        input: &<Self as HasStorage<T, N>>::Storage,
+        grad_output: &<Self as HasStorage<T, N>>::Storage,
+        grad_input: &mut <Self as HasStorage<T, N>>::Storage,
+    ) where
         Self: HasStorage<T, N>;
 }
 
-/* ---------- Metal implementation ---------- */
+impl<T, const R: usize, const C: usize, B> Tensor2<T, R, C, B>
+where
+    T: Copy + Default + PartialOrd,
+    B: Relu<T> + HasStorage<T, { R * C }>,
+{
+    #[inline]
+    pub fn relu(self) -> Self {
+        let mut out = <B as HasStorage<T, { R * C }>>::storage_uninit();
+        B::relu::<{ R * C }>(&self.storage, &mut out);
+        Self {
+            storage: out,
+            _p: core::marker::PhantomData,
+        }
+    }
+}
 
-impl ReluKernel<f32> for MetalGpu {
-    fn relu<const N: usize>(buf: &mut <Self as HasStorage<f32, N>>::Storage)
-    where
-        Self: HasStorage<f32, N>,
-    {
-        unsafe {
-            /* --------- one-time pipeline compilation --------- */
-            static PSO: OnceCell<Id<MTLComputePipelineState>> = OnceCell::new();
-            let device = &MetalGpu::shared().device;
-            let pso = PSO.get_or_init(|| {
-                // You can also pre-compile the .metallib and bundle it.
-                let src = include_str!("relu.metal");
-                let opts = std::ptr::null(); // default compile options
-                let mut err: *mut objc2::runtime::Object = std::ptr::null_mut();
-                // newLibraryWithSource:options:error:
-                let lib = device.newLibraryWithSource_options_error(src, opts, &mut err);
-                if lib.is_null() {
-                    panic!("Metal compile error: {:?}", err);
-                }
-                let func = lib.getFunctionWithName("relu_kernel").expect("fn");
-                device
-                    .newComputePipelineStateWithFunction_error(&func, &mut err)
-                    .expect("pipeline")
-            });
+impl<T, const D0: usize, const D1: usize, const D2: usize, B> Tensor3<T, D0, D1, D2, B>
+where
+    T: Copy + Default + PartialOrd,
+    B: Relu<T> + HasStorage<T, { D0 * (D1 * D2) }>,
+    [(); D0 * (D1 * D2)]:,
+{
+    #[inline]
+    pub fn relu(self) -> Self {
+        let mut out = <B as HasStorage<T, { D0 * (D1 * D2) }>>::storage_uninit();
+        B::relu::<{ D0 * (D1 * D2) }>(&self.storage, &mut out);
+        Self {
+            storage: out,
+            _p: core::marker::PhantomData,
+        }
+    }
+}
 
-            /* --------- command buffer & encoder --------- */
-            let queue: &Id<MTLCommandQueue> = &MetalGpu::shared().queue;
-            let cmd_buf = queue.commandBuffer().expect("cmd buffer");
-            let encoder = cmd_buf.computeCommandEncoder().expect("encoder");
-            encoder.setComputePipelineState(pso);
+impl<T, const D0: usize, const D1: usize, const D3: usize, const D4: usize, B>
+    Tensor4<T, D0, D1, D3, D4, B>
+where
+    T: Copy + Default + PartialOrd,
+    B: Relu<T> + HasStorage<T, { D0 * (D1 * (D3 * D4)) }>,
+    [(); D0 * (D1 * (D3 * D4))]:,
+{
+    #[inline]
+    pub fn relu(self) -> Self {
+        let mut out = <B as HasStorage<T, { D0 * (D1 * (D3 * D4)) }>>::storage_uninit();
+        B::relu::<{ D0 * (D1 * (D3 * D4)) }>(&self.storage, &mut out);
+        Self {
+            storage: out,
+            _p: core::marker::PhantomData,
+        }
+    }
 
-            /* --------- bind the tensor buffer --------- */
-            let storage: &MetalGpuStorage = &*(buf as *mut _ as *mut _);
-            encoder.setBuffer_offset_atIndex(&storage.buffer, 0, 0);
-
-            /* --------- dispatch --------- */
-            const TG_SIZE: usize = 256;
-            let thr_per_tg = MTLSize {
-                width: TG_SIZE as _,
-                height: 1,
-                depth: 1,
-            };
-            let tg_count = MTLSize {
-                width: ((N + TG_SIZE - 1) / TG_SIZE) as _,
-                height: 1,
-                depth: 1,
-            };
-            encoder.dispatchThreadgroups_threadsPerThreadgroup(tg_count, thr_per_tg);
-            encoder.endEncoding();
-
-            cmd_buf.commit();
-            cmd_buf.waitUntilCompleted();
+    #[inline]
+    pub fn relu_backward(
+        input: &Self,
+        grad_output: &Self,
+    ) -> Self {
+        let mut grad_input = <B as HasStorage<T, { D0 * (D1 * (D3 * D4)) }>>::storage_uninit();
+        B::relu_backward::<{ D0 * (D1 * (D3 * D4)) }>(
+            &input.storage,
+            &grad_output.storage,
+            &mut grad_input,
+        );
+        Self {
+            storage: grad_input,
+            _p: core::marker::PhantomData,
         }
     }
 }

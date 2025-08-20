@@ -1,6 +1,6 @@
 use tensor::tensor::Tensor3;
 use tensor::storage::metal_gpu::MetalGpu;
-use tensor::storage::HasStorage;
+use tensor::tensor_ops::relu::Relu;
 
 pub struct ReLU; 
 
@@ -15,8 +15,12 @@ impl ReLU {
     )
     where
         [(); D0 * (D1 * D2)]:,
-        MetalGpu: HasStorage<f32, {D0 * D1 * D2}>, 
+        MetalGpu: Relu<f32>,
     {
-        input.relu(); 
+        // Apply ReLU using the tensor's built-in method
+        let result = input.clone().relu();
+        
+        // Update the input with the result
+        *input = result;
     }
 }
